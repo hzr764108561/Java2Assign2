@@ -1,4 +1,3 @@
-import javafx.application.Platform;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,43 +6,29 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
-import javafx.scene.Group;
-import javafx.scene.Scene;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import javafx.scene.text.Text;
-import javafx.stage.WindowEvent;
-
-/**
- * 客户端
- * @author 花大侠
- *
- */
 public class links implements Runnable {
   TextField ipText;
   TextField portText;
   TextField statusText;
   Button sendButton;
+  Button match;
+  Button freshen;
+  ObservableList<String> clients;
+  ListView<String> clientListView;
   List<Button> grids;
   String GameStatus;
   Boolean myTurn = false;
   Boolean oOrX = true;
   List<Grid> chess;
-  ListView<String> clientListView;
   Text t;
   Text t2;
   Stage stage;
@@ -54,7 +39,8 @@ public class links implements Runnable {
     super();
   }
 
-  public links(Socket socket, TextField ipText, TextField portText, List<Button> grids, Button sendButton, String GameStatus, List<Grid> chess, Text t,Text t2,Stage stage, TextField name) {
+  public links(Socket socket, TextField ipText, TextField portText, List<Button> grids, Button sendButton, String GameStatus, List<Grid> chess, Text t,Text t2,Stage stage, TextField name
+                ,Button freshen, Button match, ObservableList<String> clients, ListView<String> clientListView) {
     super();
     this.ipText = ipText;
     this.portText = portText;
@@ -67,6 +53,10 @@ public class links implements Runnable {
     this.stage = stage;
     this.socket = socket;
     this.name = name;
+    this.freshen = freshen;
+    this.match = match;
+    this.clients = clients;
+    this.clientListView = clientListView;
   }
 
   /**
@@ -93,12 +83,18 @@ public class links implements Runnable {
       GameStatus = "end";
       if (back.charAt(1) == 'w'){
         t.setText("win");
+        t2.setText("");
+        myTurn = false;
       }
       else if (back.charAt(1) == 'l'){
         t.setText("loss");
+        t2.setText("");
+        myTurn = false;
       }
       else {
         t.setText("draw");
+        t2.setText("");
+        myTurn = false;
       }
     }
     else if (back.charAt(0) == '1'&&GameStatus.equals("Start")) {
@@ -111,8 +107,9 @@ public class links implements Runnable {
     }
     else if (back.charAt(0) == '2'&&GameStatus.equals("Wait")){
       char a = back.charAt(1);
+      String[] player = back.split(",");
       GameStatus = "Start";
-      t.setText("Start");
+      t.setText("Start with " + player[1]);
       if (a == 'o'){
         t2.setText("Your turn");
         myTurn = true;
@@ -164,7 +161,7 @@ public class links implements Runnable {
           }
           t.setText("wait");
           GameStatus = "Wait";
-          pWriter.write(socket.getLocalSocketAddress().toString().substring(1) + "," + "wait" + "," + "0" +"," +name+ "\r\n");
+          pWriter.write(socket.getLocalSocketAddress().toString().substring(1) + "," + "wait" + "," + "0" +"," +name.getText()+ "\r\n");
           pWriter.flush();
         }
       });
