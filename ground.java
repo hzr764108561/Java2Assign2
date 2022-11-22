@@ -1,6 +1,5 @@
-
-import javafx.application.Platform;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -14,12 +13,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-/**
- * 客户端UI
- * @author 花大侠
- *
- */
-public class ground extends Application{
+
+public class ground extends Application {
   TextField name = new TextField();
   final TextField ipText = new TextField();
   final TextField portText = new TextField();
@@ -28,7 +23,6 @@ public class ground extends Application{
   @Override
   public void start(Stage primaryStage) throws Exception {
 
-    //左边 IPAdress+Port
     GridPane leftPane1 = new GridPane();
     leftPane1.setPadding(new Insets(11.5, 12.5, 13.5, 14.5));
     leftPane1.setHgap(5.5);
@@ -43,23 +37,20 @@ public class ground extends Application{
     portText.setEditable(true);
     leftPane1.add(name, 1, 2);
 
-    //左边 Connect Status + button
     GridPane leftPane3 = new GridPane();
     leftPane3.setPadding(new Insets(11.5, 12.5, 13.5, 14.5));
     leftPane3.setHgap(5.5);
     leftPane3.setVgap(5.5);
     leftPane3.add(sendButton, 0, 0);
 
-    //组合
     VBox vBox = new VBox();
-    vBox.getChildren().addAll(leftPane1,leftPane3);
+    vBox.getChildren().addAll(leftPane1, leftPane3);
     HBox hBox = new HBox();
     hBox.getChildren().addAll(vBox);
 
     Scene scene = new Scene(hBox);
     primaryStage.setTitle("client");
     primaryStage.setScene(scene);
-    //关闭UI线程时同时关闭各子线程
     primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
       @Override
       public void handle(WindowEvent event) {
@@ -68,12 +59,11 @@ public class ground extends Application{
     });
     primaryStage.show();
 
-    //启动Client线程
-    sendButton.setOnAction(e->{
+    sendButton.setOnAction(e -> {
       Platform.runLater(new Runnable() {
         @Override
         public void run() {
-          new Thread(new users(ipText, portText,name,sendButton)).start();//更新JavaFX的主线程的代码放在此处
+          new Thread(new users(primaryStage, ipText, portText, name, sendButton)).start();
         }
       });
 
