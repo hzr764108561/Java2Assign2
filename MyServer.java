@@ -15,11 +15,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
-/**
- * 服务端
- * @author 花大侠
- *
- */
 public class MyServer implements Runnable {
 
     //Server端监听的端口号
@@ -30,13 +25,7 @@ public class MyServer implements Runnable {
     Map<String ,String> battle= new HashMap<>();;
     List<String> wait = new ArrayList<>();
     //存放已连接socket地址(IP:Port)，用于clientListView
-    ObservableList<String> clients;
-    ListView<String> clientListView;
 
-    TextField ipText;
-    TextField portText;
-    TextArea sendMsgArea;
-    TextField statusText;
     Button sendButton;
     TextArea receivedMsgArea;
 
@@ -44,17 +33,10 @@ public class MyServer implements Runnable {
 
     }
 
-    public MyServer(TextField ipText, TextField portText, TextArea sendMsgArea, TextField statusText,
-                    Button sendButton, TextArea receivedMsgArea, ObservableList<String> clients, ListView<String> clientListView) {
+    public MyServer(Button sendButton, TextArea receivedMsgArea) {
         super();
-        this.ipText = ipText;
-        this.portText = portText;
-        this.sendMsgArea = sendMsgArea;
-        this.statusText = statusText;
         this.sendButton = sendButton;
         this.receivedMsgArea = receivedMsgArea;
-        this.clients = clients;
-        this.clientListView = clientListView;
     }
 
     /**
@@ -62,10 +44,6 @@ public class MyServer implements Runnable {
      */
     public void updateIpAndPort() {
         //用于在非UI线程更新UI界面
-        Platform.runLater(()->{
-            ipText.setText("127.0.0.2");
-            portText.setText(String.valueOf(PORT));
-        });
     }
 
     @Override
@@ -78,7 +56,7 @@ public class MyServer implements Runnable {
             while(true) {
                 socket = server.accept();
                 //一个客户端接入就启动一个handler线程去处理
-                new Thread(new handler(map, socket, sendMsgArea, statusText, sendButton, receivedMsgArea, clients, clientListView,battle,wait)).start();
+                new Thread(new handler(map, socket,sendButton, receivedMsgArea,battle,wait)).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
