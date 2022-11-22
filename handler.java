@@ -16,11 +16,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
-/**
- * 处理线程
- * @author 花大侠
- *
- */
 public class handler implements Runnable {
 
   Socket socket;
@@ -28,8 +23,6 @@ public class handler implements Runnable {
   TextField statusText;
   Button sendButton;
   TextArea receivedMsgArea;
-  ObservableList<String> clients;
-  ListView<String> clientListView;
   Map<String, PrintWriter> map;
   Map<String ,String> battle;
   List<String> wait;
@@ -39,17 +32,13 @@ public class handler implements Runnable {
     super();
   }
 
-  public handler(Map<String, PrintWriter> map, Socket socket, TextArea sendMsgArea, TextField statusText, Button sendButton,
-                 TextArea receivedMsgArea, ObservableList<String> clients, ListView<String> clientListView,Map<String ,String> battle,List<String> wait) {
+  public handler(Map<String, PrintWriter> map, Socket socket,Button sendButton,
+                 TextArea receivedMsgArea,Map<String ,String> battle,List<String> wait) {
     super();
     this.map = map;
     this.socket = socket;
-    this.sendMsgArea = sendMsgArea;
-    this.statusText = statusText;
     this.sendButton = sendButton;
     this.receivedMsgArea = receivedMsgArea;
-    this.clients = clients;
-    this.clientListView = clientListView;
     this.battle = battle;
     this.wait = wait;
   }
@@ -62,10 +51,8 @@ public class handler implements Runnable {
    */
   public void updateForConnect(String remoteSocketAddress) {
     Platform.runLater(()->{
-      clients.add(remoteSocketAddress);
       SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-      receivedMsgArea.appendText(String.valueOf(clients.size()) + " Connected from " + remoteSocketAddress + " " + sdf.format(new Date()) + "\n");
-      statusText.setText(String.valueOf(clients.size()) + " Connect success.");
+      receivedMsgArea.appendText(" Connected from " + remoteSocketAddress + " " + sdf.format(new Date()) + "\n");
     });
   }
 
@@ -78,8 +65,6 @@ public class handler implements Runnable {
    */
   public void updateForDisConnect(String remoteSocketAddress) {
     Platform.runLater(()->{
-      clients.remove(remoteSocketAddress);
-      statusText.setText(String.valueOf(clients.size()) + " Connect success.");
       receivedMsgArea.appendText(remoteSocketAddress + " out of connected.." + "\n");
       map.remove(remoteSocketAddress);
     });
@@ -94,21 +79,6 @@ public class handler implements Runnable {
    *   2.1遍历printWriters集合
    *   2.2写入待发送的消息
    */
-  public void sendMessage() {
-    Set<PrintWriter> printWriters = new HashSet<>();
-    clientListView.getSelectionModel().selectedItemProperty().addListener(ov->{
-      printWriters.clear();
-      for(String key: clientListView.getSelectionModel().getSelectedItems()) {
-        printWriters.add(map.get(key));
-      }
-    });
-    sendButton.setOnAction(e->{
-      for (PrintWriter printWriter : printWriters) {
-        printWriter.write("127.0.0.1:9999" + "  " + sendMsgArea.getText() + "\r\n");
-        printWriter.flush();
-      }
-    });
-  }
 
   public void booleanEnd(String[] list){
     if (mychess.size()>=3) {
@@ -180,13 +150,12 @@ public class handler implements Runnable {
   public void sendMessages(String[] list, String status){
     List<PrintWriter> printWriters = new ArrayList<>();
     if (status.equals("Start")){
-      System.out.println(list[0]);
-      for (String key:list){
-        printWriters.add(map.get(key));
+      for (int i = 0; i < 2; i++) {
+        printWriters.add(map.get(list[i]));
       }
-      printWriters.get(0).write("2o" + "\r\n");
+      printWriters.get(0).write("2o," + list[2] + "," + "\r\n");
       printWriters.get(0).flush();
-      printWriters.get(1).write("2x" + "\r\n");
+      printWriters.get(1).write("2x," + list[3] + "," + "\r\n");
       printWriters.get(1).flush();
     }
     else if (status.equals("Step")){
@@ -241,11 +210,13 @@ public class handler implements Runnable {
         battle.put(back[0],wait.get(0));
         battle.put(wait.get(0),back[0]);
         String a = wait.get(0);
-        wait.remove(0);
-        sendMessages(new String[]{a, back[0]},"Start");
+        String b = wait.get(1);
+        wait.clear();
+        sendMessages(new String[]{a, back[0], b, back[3]},"Start");
       }
       else {
         wait.add(back[0]);
+        wait.add(back[3]);
       }
     }
     else if(back[1] .equals("step")){
@@ -268,7 +239,6 @@ public class handler implements Runnable {
       PrintWriter pWriter = new PrintWriter(out);
       map.put(remoteSocketAddress, pWriter);
       //发消息
-      sendMessage();
       //收消息
       String message;
       while(true) {
